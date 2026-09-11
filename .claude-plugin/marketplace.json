@@ -1,0 +1,34 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "seungdo-skills",
+  "description": "실무에서 반복해서 쓴 것만 올리는 스킬 마켓플레이스.",
+  "owner": {
+    "name": "Seungdo Bae",
+    "url": "https://github.com/HaeDalWang"
+  },
+  "plugins": [
+    {
+      "name": "seungdo-skills",
+      "source": ".",
+      "description": "답변의 근거를 강제하는 seonbi, 고객 메신저 회신을 쓰는 katalk.",
+      "category": "productivity",
+      "homepage": "https://github.com/HaeDalWang/seungdo-skills",
+      "license": "PolyForm-Noncommercial-1.0.0"
+    },
+    {
+      "name": "k8s-upgrade-skills",
+      "source": {
+        "source": "github",
+        "repo": "HaeDalWang/k8s-upgrade-skills"
+      },
+      "strict": false,
+      "skills": [
+        "./k8s-upgrade-skills",
+        "./helm-k8s-compat"
+      ],
+      "description": "Kubernetes 버전 업그레이드를 phase-gated 방식으로 수행한다. Helm 차트 호환성 사전 점검(helm-k8s-compat) 포함.",
+      "category": "devops",
+      "homepage": "https://github.com/HaeDalWang/k8s-upgrade-skills"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "seungdo-skills",
+  "displayName": "Seungdo Skills",
+  "version": "0.1.0",
+  "description": "실무에서 반복 검증된 스킬 모음. 답변의 근거를 강제하는 seonbi, 고객 메신저 회신을 쓰는 katalk.",
+  "author": {
+    "name": "Seungdo Bae",
+    "url": "https://github.com/HaeDalWang"
+  },
+  "homepage": "https://github.com/HaeDalWang/seungdo-skills",
+  "repository": "https://github.com/HaeDalWang/seungdo-skills",
+  "keywords": [
+    "answer-quality",
+    "verification",
+    "customer-communication",
+    "msp",
+    "devops",
+    "korean"
+  ],
+  "license": "PolyForm-Noncommercial-1.0.0"
+}
