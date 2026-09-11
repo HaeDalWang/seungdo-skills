@@ -18,8 +18,8 @@
     {
       "name": "k8s-upgrade-skills",
       "source": {
-        "source": "github",
-        "repo": "HaeDalWang/k8s-upgrade-skills"
+        "source": "url",
+        "url": "https://github.com/HaeDalWang/k8s-upgrade-skills.git"
       },
       "strict": false,
       "skills": [
