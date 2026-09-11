@@ -63,6 +63,9 @@ cp -R skills/seonbi skills/katalk ~/.claude/skills/
 
 `k8s-upgrade-skills`는 해당 레포의 `install.sh`를 쓰세요.
 
+> 플러그인 설치와 수동 설치를 **둘 다 하지는 마세요.** 같은 스킬이 두 벌 로드됩니다.
+> 플러그인으로 옮겼다면 `~/.claude/skills/`의 같은 이름 디렉터리는 지우세요.
+
 ---
 
 ## 스킬 상세
