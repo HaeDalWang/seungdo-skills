@@ -1,6 +1,6 @@
 ---
 name: seonbi
-description: Answer-quality gate. Before asserting any fact or recommending any action, lock the scope of the question and force the answer through five checks — temporal fit, source ladder, design intent, calibrated certainty, and optimality — using the running system and the actual code for behavior claims, context7 for library and framework docs, and exa for everything else. Use this skill whenever the user asks a factual, technical, version-specific, or troubleshooting question; whenever an answer would cite documentation, quote a config option, or recommend a change to a running system; and whenever the user asks "are you sure", "what's the source", "why did this happen", or says 근거 / 출처 / 확실해 / 장애 / 트러블슈팅 / 선비. Use it even when the question looks simple enough to answer from memory — questions that look simple are exactly where unsourced answers slip through. Incidents are the highest-stakes case, not the only case.
+description: Answer-quality gate. Before asserting any fact or recommending any action, lock the scope of the question and force the answer through five checks — temporal fit, source ladder, design intent, calibrated certainty, and optimality — using the running system and the actual code for behavior claims, context7 for library and framework docs, and exa for everything else — and for a diagnosis, searching prior art (issue threads, the error string itself) before theorizing about the cause. Use this skill whenever the user asks a factual, technical, version-specific, or troubleshooting question; whenever an answer would cite documentation, quote a config option, or recommend a change to a running system; and whenever the user asks "are you sure", "what's the source", "why did this happen", or says 근거 / 출처 / 확실해 / 장애 / 트러블슈팅 / 선비. Use it even when the question looks simple enough to answer from memory — questions that look simple are exactly where unsourced answers slip through. Incidents are the highest-stakes case, not the only case.
 ---
 
 # Seonbi
@@ -34,6 +34,7 @@ Verification is done with tools, not from memory.
 | What the system **actually** does right now | shell: `rg`/`grep`, `git log`/`blame`, `kubectl`, `aws` CLI, `terraform plan`/`state`, real logs and metrics |
 | Library / framework / API docs, version-specific behavior | **context7** — `use context7`<br>fallback: **WebFetch** the official doc URL directly |
 | Release notes, GitHub issues & PRs, CVEs, RFCs, blogs, everything else | **exa** — `use exa`<br>fallback: built-in **WebSearch** / **WebFetch** |
+| An error string, stack trace, or symptom — **has someone hit this already** | **exa** first: official repo issues & PRs, then Stack Overflow / blogs<br>fallback: built-in **WebSearch** |
 
 Rules:
 
@@ -55,12 +56,13 @@ The evidence must apply to **this** target, at **this** version.
 
 ## Gate 2 — Source ladder
 
-**First decide what kind of claim this is.** The two kinds have different top rungs.
+**First decide what kind of claim this is.** The three kinds have different top rungs — and the third one is searched in a different order.
 
 | Claim | Highest authority |
 |---|---|
 | "How does it **actually behave** right now" | the artifact itself — running system, deployed config, the code in this repo |
 | "How is it **supposed to** behave / what is supported" | official documentation |
+| "**Why** did this break / what is causing this" | prior art is the fastest way *in* — but it is a lead, not the basis (see the Diagnosis ladder) |
 
 **Behavior ladder** — for the first kind:
 
@@ -80,9 +82,28 @@ official docs (context7)
     → community / blog (exa), weighted by author credibility
 ```
 
+**Diagnosis ladder** — for the third kind. **This one is an order of search, not an order of authority.**
+
+```
+1. Pin the symptom
+     the exact error string, the log line, the timestamp,
+     and what changed immediately before it
+2. Search prior art          ← NOT skippable
+     normalize first: strip the variable parts
+     (ids, paths, hostnames, timestamps, ports)
+     and search the invariant remainder, quoted
+       a. official repo issues & PRs — known? already fixed in X? still open?
+       b. Stack Overflow / blogs / release notes — same symptom pattern
+3. Form the hypothesis        ← what prior art gives you is a lead, never a proof
+4. Promote it                 ← confirm the lead against the running system
+                                (logs, config, state) and the official docs
+5. Nothing promotes → emit the Blocked block, listing the leads AS leads
+```
+
 Rules:
 
-- Stop at the highest rung that actually answers the question. Do not descend past it.
+- Stop at the highest rung that actually answers the question. Do not descend past it. **Exception — diagnosis reverses this rule.** A higher rung *looking* like it answers the question never excuses skipping the error-string search. Root causes live in issue threads far more often than in documentation, and the minutes that search costs are the cheapest minutes in the whole process.
+- **Lead vs proof.** Issues, Stack Overflow and blogs are **leads** — they generate hypotheses, and for a diagnosis they are searched *first*. They are never the cited basis of an answer. Promote every lead to the running system or the official docs before it appears as evidence; what cannot be promoted stays labeled a hypothesis.
 - **State which rung the answer came from.** If it came from a blog, the user needs to know it came from a blog.
 - **When the live system and the docs disagree, the live system wins for behavior claims — and the disagreement is reported.** That gap is usually the actual finding, not a detail to smooth over.
 
@@ -124,9 +145,10 @@ Required: state the confidence level as a fact.
 
 Applies to incidents, deploys, config changes, migrations. Skipped for pure factual questions.
 
-1. **Verify environment facts before diagnosing** — actual version, actual config, actual log lines, via the shell tools above. Diagnosing from assumed state is the most common way to be confidently wrong in production, and no amount of good sourcing fixes it.
-2. **Prefer reversible actions first.** Order proposals by how easily they undo.
-3. **State the blast radius.** What else is touched, who else notices, what the rollback is.
+1. **Search prior art before theorizing** — run the Diagnosis ladder. Someone has usually hit this already; finding that takes minutes, while guessing at it takes hours and often ends at the wrong cause.
+2. **Verify environment facts before diagnosing** — actual version, actual config, actual log lines, via the shell tools above. Diagnosing from assumed state is the most common way to be confidently wrong in production, and no amount of good sourcing fixes it.
+3. **Prefer reversible actions first.** Order proposals by how easily they undo.
+4. **State the blast radius.** What else is touched, who else notices, what the rollback is.
 
 ---
 
@@ -169,6 +191,8 @@ This footer is the only externally visible proof the gates ran. Do not omit it, 
 - Presenting recalled information as sourced → Gate 2, worst case
 - Citing docs for a behavior claim when the running system was checkable → Gate 2
 - Smoothing over a docs-vs-reality gap instead of reporting it → Gate 2
+- Theorizing about a cause without searching the error string → Gate 2, Diagnosis ladder
+- Citing an issue thread or blog as the basis instead of promoting it → Gate 2, lead vs proof
 - Citing a doc without knowing the target version → Gate 1
 - Recommending a workaround as if it were the intended path → Gate 3
 - Applying a definite tone to an unverified claim → Gate 4
@@ -182,6 +206,7 @@ This footer is the only externally visible proof the gates ran. Do not omit it, 
 □ Scope     Am I answering what was asked, or what was easier to source?
 □ Version   Do I know the target's version, and does my evidence apply to it?
 □ Source    Behavior claim → did I check the real thing? Which rung? Recorded?
+□ Prior art Diagnosis? Did I search the error string before theorizing?
 □ Intent    Is this the designed path, or a hack I have labeled as one?
 □ Certainty Confirmed / hypothesis / unknown — did I state which?
 □ Optimal   Did I name the tradeoff, or just push the first idea?
