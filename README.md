@@ -68,6 +68,78 @@ cp -R skills/seonbi skills/katalk ~/.claude/skills/
 
 ---
 
+## 함께 쓰기
+
+`seonbi`와 `katalk`은 짝으로 씁니다.
+
+고객에게 메시지를 보내기 전에 **그 메시지에 들어갈 사실이 이번 세션에서 확인된 것인지**를 `seonbi`가 먼저 거릅니다.
+검증 안 된 추측을 고객에게 단정해서 보내는 게 실무에서 가장 비싼 실수라서요.
+
+K8s 업그레이드 중에도 같습니다 — 게이트가 멈추면 `seonbi`로 원인을 확인하고, `katalk`으로 고객에게 상황을 알립니다.
+
+### 레포 밖에서 같이 쓰는 것들
+
+여기 스킬로 들어있진 않지만 **짝으로 쓰는** 도구들입니다.
+`seonbi`가 검색 도구 없이는 반쪽이 되는 것처럼, 스킬 혼자서는 완성되지 않는 조합이 있습니다.
+
+| 도구 | 종류 | 원본 | 왜 같이 쓰나 |
+|---|---|---|---|
+| **exa** | MCP | [exa-labs/exa-mcp-server](https://github.com/exa-labs/exa-mcp-server) | `seonbi`의 검색 1순위. 없으면 내장 `WebSearch`로 폴백되지만, 커뮤니티 노이즈를 걸러 에이전트용으로 정제된 결과라 품질이 다름 |
+| **context7** | MCP | [upstash/context7](https://github.com/upstash/context7) | `seonbi`의 라이브러리·프레임워크 문서 경로. 버전별 API 동작을 기억이 아니라 문서에서 가져옴 |
+| **AWS MCP** | 플러그인 | [aws/agent-toolkit-for-aws](https://github.com/aws/agent-toolkit-for-aws) | 실행 중인 AWS 상태를 직접 조회. `seonbi`가 *"행위 주장은 실행 시스템이 최상단"* 이라고 할 때의 바로 그 시스템 |
+| **eli5** | 스킬 | [DreambigOu/ELI5](https://github.com/DreambigOu/ELI5) | 같은 내용을 청중 수준에 맞춰 다시 설명. 기술직이 아닌 담당자나 임원 보고용 |
+
+넷 다 **독립 프로젝트**입니다. `exa`와 `context7`은 [everything-claude-code](https://github.com/affaan-m/everything-claude-code) 같은 번들에 함께 실려 오기도 하지만 그건 배포 경로일 뿐이고, 단독으로 등록해도 동일하게 동작합니다.
+
+```bash
+claude mcp add --transport http exa https://mcp.exa.ai/mcp
+claude mcp add context7 -- npx -y @upstash/context7-mcp
+```
+
+```
+/plugin marketplace add aws/agent-toolkit-for-aws
+/plugin install aws-core@agent-toolkit-for-aws
+```
+
+`seonbi`는 어느 경로로 깔렸든 **검색 도구가 하나라도 살아 있으면 그걸 먼저** 씁니다.
+
+### 이런 조합으로 씁니다
+
+**장애·트러블슈팅** — 제일 자주 쓰는 조합
+
+```
+seonbi          진단 경로 진입. 에러 문자열부터 고정
+  ├ exa         같은 증상을 남이 먼저 겪었나 (이슈 스레드에 fixed in X 로 닫혀 있는 경우가 많음)
+  ├ AWS MCP     내 환경의 실제 상태는 어떤가 — 추측이 아니라 조회
+  └ context7    해당 버전 문서가 뭐라고 하나
+      ↓
+    승격 검증 후 결론 → footer 에 Source / Certainty / Verify
+      ↓
+katalk          고객에게 보낼 2~3줄. 확인된 사실만 들어감
+```
+
+**EKS 업그레이드**
+
+```
+k8s-upgrade-skills   recipe 검증 → 계획서 → phase gate
+  게이트가 멈추면 → seonbi (왜 멈췄나, 사례부터 검색)
+  고객 공유가 필요하면 → katalk
+```
+
+**비기술 담당자 응대**
+
+```
+seonbi   먼저 사실을 확정 (틀린 걸 쉽게 설명하면 더 나쁨)
+  → eli5     청중 수준에 맞춰 다시 씀
+  → katalk   메신저로 보낼 길이로 줄임
+```
+
+순서가 중요합니다. **`seonbi`가 항상 먼저**입니다 — 검증 안 된 내용을 쉽게 풀어 쓰거나 고객에게 단정해서 보내는 게, 어렵게 쓴 틀린 답보다 더 비싸게 돌아옵니다.
+
+아래는 각 스킬이 실제로 무엇을 강제하는지에 대한 설명입니다.
+
+---
+
 ## 스킬 상세
 
 ### `seonbi` — 선비
@@ -165,17 +237,6 @@ AWS 에서 타겟그룹 이름은 계정과 리전 단위로 유일해야 하는
 
 > 무중단을 **보장**하지는 않습니다. 위험을 사전에 탐지(disruption-aware)할 뿐이고,
 > 인프라 변경의 최종 책임은 실행자에게 있습니다.
-
----
-
-## 함께 쓰기
-
-`seonbi`와 `katalk`은 짝으로 씁니다.
-
-고객에게 메시지를 보내기 전에 **그 메시지에 들어갈 사실이 이번 세션에서 확인된 것인지**를 `seonbi`가 먼저 거릅니다.
-검증 안 된 추측을 고객에게 단정해서 보내는 게 실무에서 가장 비싼 실수라서요.
-
-K8s 업그레이드 중에도 같습니다 — 게이트가 멈추면 `seonbi`로 원인을 확인하고, `katalk`으로 고객에게 상황을 알립니다.
 
 ---
 
