@@ -21,6 +21,9 @@ AWS/Kubernetes 운영과 고객 대응을 하면서, 매번 똑같이 하던 판
 | [`katalk`](skills/katalk/SKILL.md) | 고객 메신저 회신을 내 말투로 쓰거나, 내 초안을 검토한다 | `카톡`, `뭐라고 보내`, `회신`, `너라면 뭐라고 적을래` |
 | [`k8s-upgrade-skills`](https://github.com/HaeDalWang/k8s-upgrade-skills) ↗ | Kubernetes 버전 업그레이드를 phase-gated 방식으로 수행 | `EKS 업그레이드`, `K8s 버전 업그레이드` |
 
+| [`verification-loop`](plugins/seungdo-devops/skills/verification-loop/SKILL.md) | 변경 후 build→type→lint→test 순서로 완료를 증명한다 | 기능 완료, PR 직전, 리팩터링 후 |
+| [`github-ops`](plugins/seungdo-devops/skills/github-ops/SKILL.md) | gh CLI로 이슈·PR·CI를 운영하고, 저장소 콘텐츠를 untrusted로 다룬다 | `이슈 정리`, `PR 확인`, `CI 깨졌다`, 릴리스 |
+
 > `k8s-upgrade-skills`는 규모가 커서 [별도 레포](https://github.com/HaeDalWang/k8s-upgrade-skills)에 있습니다.
 > 파일은 여기 없지만 **같은 마켓플레이스에서 설치**됩니다 (아래 참고).
 
@@ -41,6 +44,12 @@ Kubernetes 업그레이드 스킬까지 쓸 경우 (별도 레포에서 자동�
 
 ```
 /plugin install k8s-upgrade-skills@seungdo-skills
+```
+
+터미널 검증과 GitHub 운영까지 쓸 경우:
+
+```
+/plugin install seungdo-devops@seungdo-skills
 ```
 
 설치 확인:
@@ -240,6 +249,37 @@ AWS 에서 타겟그룹 이름은 계정과 리전 단위로 유일해야 하는
 
 ---
 
+### `verification-loop` · `github-ops` — ECC에서 가져온 것
+
+[affaan-m/ECC](https://github.com/affaan-m/ECC) (MIT)에서 2종만 골라 왔습니다.
+
+다른 스킬과 달리 **"반복해서 써본 것"이 아닙니다.** 91개 세션 기록을 실측했더니
+ECC 스킬 호출은 5주간 0회였습니다. 그런데도 이 둘만 남긴 이유:
+
+| 스킬 | 남긴 이유 |
+|---|---|
+| `verification-loop` | ECC 스킬 중 **유일하게 다른 스킬을 참조하지 않습니다.** 나머지는 서로 물려 있어 하나만 떼면 반쪽이 됩니다 |
+| `github-ops` | 이슈 본문·PR 설명·CI 로그를 **untrusted 입력으로 다루는 섹션**이 있습니다. `ignore previous rules`나 `curl … \| sh` 가 적힌 fork PR을 그대로 실행하지 않게 막습니다. github MCP는 툴이고 이건 가드레일이라 역할이 겹치지 않습니다 |
+
+가져오지 않은 것과 그 이유:
+
+| 스킬 | 이유 |
+|---|---|
+| `tdd-workflow` | `~/.claude/rules/common/testing.md`와 내용 중복 — 80% 커버리지, RED/GREEN이 그대로 겹칩니다 |
+| `security-review` | `~/.claude/rules/common/security.md`와 체크리스트 중복 + Claude Code 내장 `security-review`와 이름 충돌 |
+| `terminal-ops` | 나머지 5종을 `Skill Stack`으로 호출하는 허브라, 세트가 아니면 의미가 없습니다 |
+| `knowledge-ops` | Layer 3이 MCP memory server 전제인데 깔려 있지 않습니다 |
+
+**중복이 파편화의 원인**이라 이렇게 걸렀습니다.
+`~/.claude/skills/`에 직접 복사해 두면 버전 관리도 재설치도 안 되고,
+플러그인과 수동 설치가 겹치면 같은 스킬이 두 벌 로드됩니다.
+그래서 여기로 올렸습니다.
+
+원본 저작권: Copyright (c) 2026 Affaan Mustafa (MIT).
+변경 내역은 [`NOTICE.md`](plugins/seungdo-devops/NOTICE.md)에 있습니다.
+
+---
+
 ## 레포 구조
 
 ```
@@ -247,11 +287,22 @@ seungdo-skills/
 ├── .claude-plugin/
 │   ├── plugin.json        # 이 레포가 하나의 플러그인
 │   └── marketplace.json   # 마켓플레이스 — 외부 레포 스킬도 여기 등록
-├── skills/
+├── skills/                # seungdo-skills 플러그인 소유
 │   ├── seonbi/SKILL.md
 │   └── katalk/SKILL.md
+├── plugins/
+│   └── seungdo-devops/    # 같은 레포 안의 두 번째 플러그인
+│       ├── .claude-plugin/plugin.json
+│       ├── LICENSE        # MIT (원본 ECC)
+│       ├── NOTICE.md      # 출처·변경 내역·채택 근거
+│       └── skills/
+│           ├── verification-loop/SKILL.md
+│           └── github-ops/SKILL.md
 └── README.md
 ```
+
+플러그인 하나당 `source`가 하나입니다. 루트 플러그인은 `skills/`만,
+`seungdo-devops`는 `plugins/seungdo-devops/skills/`만 읽으므로 같은 스킬이 두 번 로드되지 않습니다.
 
 매니페스트를 고쳤다면 커밋 전에:
 
@@ -265,5 +316,9 @@ claude plugin validate skills --strict
 ## 라이선스
 
 [PolyForm Noncommercial License 1.0.0](LICENSE)
+
+예외: `plugins/seungdo-devops/`는 [ECC](https://github.com/affaan-m/ECC)에서 가져온 스킬이라
+원본을 따라 **MIT**입니다. 저작권 고지와 변경 내역은
+[`plugins/seungdo-devops/NOTICE.md`](plugins/seungdo-devops/NOTICE.md)에 있습니다.
 
 개인·학습·사내 업무 등 **비상업 목적**은 자유롭게 쓰세요. 상업적 이용은 [저작자](https://github.com/HaeDalWang)에게 문의해 주세요.

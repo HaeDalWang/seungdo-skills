@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "seungdo-devops",
+  "displayName": "Seungdo DevOps",
+  "version": "0.1.0",
+  "description": "터미널 중심 작업의 증거주의 보강. 변경 후 build→type→lint→test 순서로 완료를 증명하는 verification-loop, gh CLI 기반 이슈·PR·CI 운영과 untrusted 저장소 콘텐츠 방어를 다루는 github-ops.",
+  "author": {
+    "name": "Seungdo Bae",
+    "url": "https://github.com/HaeDalWang"
+  },
+  "homepage": "https://github.com/HaeDalWang/seungdo-skills",
+  "repository": "https://github.com/HaeDalWang/seungdo-skills",
+  "keywords": ["verification", "github", "ci", "gh-cli", "devops", "prompt-injection"],
+  "license": "MIT"
+}
