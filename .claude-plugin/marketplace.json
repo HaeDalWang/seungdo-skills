@@ -10,7 +10,7 @@
     {
       "name": "seungdo-skills",
       "source": ".",
-      "description": "답변의 근거를 강제하는 seonbi, 고객 메신저 회신을 쓰는 katalk.",
+      "description": "답변의 근거를 강제하는 seonbi, 고객 메신저 회신을 쓰는 katalk. 에이전트 leak-scan·shell-diagnose 포함.",
       "category": "productivity",
       "homepage": "https://github.com/HaeDalWang/seungdo-skills",
       "license": "PolyForm-Noncommercial-1.0.0"

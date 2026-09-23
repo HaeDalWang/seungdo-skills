@@ -13,7 +13,9 @@ AWS/Kubernetes 운영과 고객 대응을 하면서, 매번 똑같이 하던 판
 
 ---
 
-## 수록 스킬
+## 수록 내용
+
+### 스킬
 
 | 스킬 | 한 줄 | 언제 켜지나 |
 |---|---|---|
@@ -21,11 +23,45 @@ AWS/Kubernetes 운영과 고객 대응을 하면서, 매번 똑같이 하던 판
 | [`katalk`](skills/katalk/SKILL.md) | 고객 메신저 회신을 내 말투로 쓰거나, 내 초안을 검토한다 | `카톡`, `뭐라고 보내`, `회신`, `너라면 뭐라고 적을래` |
 | [`k8s-upgrade-skills`](https://github.com/HaeDalWang/k8s-upgrade-skills) ↗ | Kubernetes 버전 업그레이드를 phase-gated 방식으로 수행 | `EKS 업그레이드`, `K8s 버전 업그레이드` |
 
+`seungdo-devops` 플러그인 (별도 설치):
+
+| 스킬 | 한 줄 | 언제 켜지나 |
+|---|---|---|
 | [`verification-loop`](plugins/seungdo-devops/skills/verification-loop/SKILL.md) | 변경 후 build→type→lint→test 순서로 완료를 증명한다 | 기능 완료, PR 직전, 리팩터링 후 |
 | [`github-ops`](plugins/seungdo-devops/skills/github-ops/SKILL.md) | gh CLI로 이슈·PR·CI를 운영하고, 저장소 콘텐츠를 untrusted로 다룬다 | `이슈 정리`, `PR 확인`, `CI 깨졌다`, 릴리스 |
 
 > `k8s-upgrade-skills`는 규모가 커서 [별도 레포](https://github.com/HaeDalWang/k8s-upgrade-skills)에 있습니다.
 > 파일은 여기 없지만 **같은 마켓플레이스에서 설치**됩니다 (아래 참고).
+
+### 에이전트
+
+스킬이 내 세션 **안에서** 동작한다면, 에이전트는 **별도 컨텍스트에서 돌고 요약만 돌려줍니다.**
+출력이 큰 작업을 메인 세션 밖으로 빼는 게 목적입니다.
+
+| 에이전트 | 한 줄 | 권한 |
+|---|---|---|
+| [`leak-scan`](agents/leak-scan.md) | 공개·푸시 전에 시크릿·개인정보·사내 식별자를 스캔. 워킹트리 **와 git 히스토리** 양쪽 | 읽기 전용 |
+| [`shell-diagnose`](agents/shell-diagnose.md) | 빌드·테스트·로그 실패를 조사해서 근본 원인과 수정안만 보고 | 읽기 전용 |
+
+플러그인을 설치하면 `agents/`가 같이 들어옵니다. 별도 설치 없음.
+
+### 룰
+
+`~/.claude/rules/`에 두면 **모든 프로젝트에 항상 적용**되는 지침입니다.
+스킬처럼 트리거를 기다리지 않고 세션 시작 시 그냥 로드됩니다.
+
+| 룰 | 내용 |
+|---|---|
+| [`coding-style.md`](rules/common/coding-style.md) | 불변성(mutation 금지), KISS·DRY·YAGNI, 파일 200–400줄, 리뷰 심각도 4단계 |
+| [`development-workflow.md`](rules/common/development-workflow.md) | 새로 짜기 전에 기존 구현부터 검색 → 계획 → TDD → 검증 |
+| [`git-workflow.md`](rules/common/git-workflow.md) | 커밋 메시지 형식, PR 작성 시 전체 커밋 히스토리 분석 |
+| [`security.md`](rules/common/security.md) | 커밋 전 보안 체크리스트, 시크릿 관리, 사고 대응 순서 |
+| [`testing.md`](rules/common/testing.md) | 커버리지 80%, RED→GREEN→REFACTOR, AAA 패턴 |
+
+> **룰은 플러그인 컴포넌트가 아닙니다.** `plugin.json`에 `rules` 필드가 없고,
+> 플러그인 루트의 `CLAUDE.md`도 프로젝트 컨텍스트로 로드되지 않습니다
+> ([plugins reference](https://code.claude.com/docs/en/plugins-reference)).
+> 그래서 룰만 수동 설치입니다.
 
 ---
 
@@ -74,6 +110,35 @@ cp -R skills/seonbi skills/katalk ~/.claude/skills/
 
 > 플러그인 설치와 수동 설치를 **둘 다 하지는 마세요.** 같은 스킬이 두 벌 로드됩니다.
 > 플러그인으로 옮겼다면 `~/.claude/skills/`의 같은 이름 디렉터리는 지우세요.
+
+### 룰 설치 (항상 수동)
+
+룰은 플러그인으로 배포되지 않습니다. **복사만 하면 됩니다** — CLAUDE.md에 import 문을 쓸 필요 없이
+`~/.claude/rules/` 아래의 `.md`는 재귀적으로 자동 로드됩니다.
+
+```bash
+git clone https://github.com/HaeDalWang/seungdo-skills.git
+cp -R seungdo-skills/rules/common ~/.claude/rules/
+```
+
+전부 말고 골라 쓰려면 파일 단위로:
+
+```bash
+mkdir -p ~/.claude/rules/common
+cp seungdo-skills/rules/common/{security,testing}.md ~/.claude/rules/common/
+```
+
+특정 프로젝트에만 적용하려면 `~/.claude/rules/` 대신 그 프로젝트의 `.claude/rules/`에 두세요.
+특정 파일을 만질 때만 켜지게 하려면 frontmatter에 `paths`를 추가하면 됩니다:
+
+```markdown
+---
+paths:
+  - "src/**/*.{ts,tsx}"
+---
+```
+
+`paths`가 없는 룰은 무조건 로드되고, 있는 룰은 매칭되는 파일을 읽을 때만 로드됩니다.
 
 ---
 
@@ -145,11 +210,11 @@ seonbi   먼저 사실을 확정 (틀린 걸 쉽게 설명하면 더 나쁨)
 
 순서가 중요합니다. **`seonbi`가 항상 먼저**입니다 — 검증 안 된 내용을 쉽게 풀어 쓰거나 고객에게 단정해서 보내는 게, 어렵게 쓴 틀린 답보다 더 비싸게 돌아옵니다.
 
-아래는 각 스킬이 실제로 무엇을 강제하는지에 대한 설명입니다.
+아래는 각 스킬과 에이전트가 실제로 무엇을 강제하는지에 대한 설명입니다.
 
 ---
 
-## 스킬 상세
+## 스킬·에이전트 상세
 
 ### `seonbi` — 선비
 
@@ -280,6 +345,30 @@ ECC 스킬 호출은 5주간 0회였습니다. 그런데도 이 둘만 남긴 �
 
 ---
 
+### `leak-scan` · `shell-diagnose` — 에이전트
+
+둘 다 **Edit/Write 권한이 없습니다.** 실수가 아니라 설계입니다.
+
+`shell-diagnose`는 빌드 로그·스택트레이스·대량 grep 결과가 메인 세션 컨텍스트를 채우는 걸 막습니다.
+내부적으로 명령을 몇 개를 돌리든 상관없고, 돌려주는 건 **근본 원인 / 근거 1–3줄 / 수정안 / 실행한 명령 목록**
+뿐입니다. 고칠 줄 알아도 직접 고치지 않고 패치 지시만 냅니다 — 적용은 호출한 세션이 합니다.
+
+`leak-scan`은 공개 전 감사자입니다. 원칙 두 개가 핵심입니다:
+
+- **시크릿 값을 절대 출력하지 않습니다.** `file:line`과 매칭된 패턴만 보고합니다. 값을 리포트에 적으면
+  유출을 트랜스크립트로 한 벌 더 복사하는 셈이라, 앞 6글자도 안 됩니다.
+- **이미 공개된 레포의 유출은 경고가 아니라 사고입니다.** 파일을 지워도 노출은 취소되지 않으므로
+  값 교체(rotate)가 필수라고 명시하고 끝냅니다.
+
+그리고 `.env`는 FAIL이지만 `.env.example`은 통과, `*.tfvars`는 "내용을 보고 판단" 같은 식으로
+**나이브한 스캐너가 만드는 노이즈를 구분**합니다.
+
+> `leak-scan`의 Category 2·3은 **일부러 비워둔 채로 올렸습니다.** 사내 도구 이름, 크리덴셜 브로커
+> 스크립트명, 본인 이메일처럼 환경마다 다른 것들이라 첫 사용 전에 채워 넣어야 합니다.
+> 그 자리에 어떤 형태가 들어가야 하는지는 파일 안에 적어뒀습니다.
+
+---
+
 ## 레포 구조
 
 ```
@@ -290,6 +379,16 @@ seungdo-skills/
 ├── skills/                # seungdo-skills 플러그인 소유
 │   ├── seonbi/SKILL.md
 │   └── katalk/SKILL.md
+├── agents/                # 플러그인이 자동으로 읽는 위치
+│   ├── leak-scan.md
+│   └── shell-diagnose.md
+├── rules/                 # 플러그인 컴포넌트 아님 — 수동으로 복사
+│   └── common/
+│       ├── coding-style.md
+│       ├── development-workflow.md
+│       ├── git-workflow.md
+│       ├── security.md
+│       └── testing.md
 ├── plugins/
 │   └── seungdo-devops/    # 같은 레포 안의 두 번째 플러그인
 │       ├── .claude-plugin/plugin.json
@@ -309,6 +408,7 @@ seungdo-skills/
 ```bash
 claude plugin validate . --strict
 claude plugin validate skills --strict
+claude plugin validate agents --strict
 ```
 
 ---
