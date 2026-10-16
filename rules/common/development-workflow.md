@@ -25,7 +25,9 @@
    change warrants full TDD ceremony — infra/ops scripts and one-off fixes often don't.
 
 3. **Verify before claiming done** — run the actual build/type/lint/test commands and
-   look at their output. Don't claim fixed without rerunning the proving command.
+   look at their output. For a non-trivial code change, use the
+   `seungdo-devops:verification-loop` skill. Don't claim fixed without rerunning the
+   proving command.
 
 4. **Commit & Push** — see [git-workflow.md](./git-workflow.md) for message format and
    PR process.

@@ -46,13 +46,20 @@ Test scope follows ponytail — no coverage target. If the change has non-trivia
 check covers it, add the ONE smallest check that fails if the logic breaks.
 
 ### Phase 5: Security Scan (changed files only)
+Compare against the merge-base with the default branch, so committed-but-unpushed work,
+uncommitted edits, and new untracked files are all included:
 ```bash
-git diff --name-only HEAD | xargs grep -nE "sk-|api_key|secret|password|BEGIN .*PRIVATE KEY" 2>/dev/null | head -10
+REF=$(git rev-parse --abbrev-ref origin/HEAD 2>/dev/null || echo main)
+BASE=$(git merge-base HEAD "$REF" 2>/dev/null || git rev-parse HEAD)
+{ git diff --name-only --diff-filter=d "$BASE"; git ls-files --others --exclude-standard; } \
+  | sort -u | xargs grep -HnE "sk-|api_key|secret|password|BEGIN .*PRIVATE KEY" 2>/dev/null | head -10
 ```
+An empty file list means nothing changed — report `SKIPPED`, not `PASS`.
 
 ### Phase 6: Diff Review
 ```bash
-git diff --stat
+git diff --stat "$BASE"
+git ls-files --others --exclude-standard   # new files the stat above does not show
 ```
 Review each changed file for unintended changes, missing error handling, and edge cases.
 
@@ -67,7 +74,7 @@ Build:     [PASS/FAIL/SKIPPED]
 Types:     [PASS/FAIL/SKIPPED] (X errors)
 Lint:      [PASS/FAIL/SKIPPED] (X warnings)
 Tests:     [PASS/FAIL/SKIPPED] (X/Y passed)
-Security:  [PASS/FAIL] (X issues)
+Security:  [PASS/FAIL/SKIPPED] (X issues)
 Diff:      [X files changed]
 
 Overall:   [READY/NOT READY]
