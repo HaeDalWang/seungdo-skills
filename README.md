@@ -144,6 +144,19 @@ paths:
 
 `paths`가 없는 룰은 무조건 로드되고, 있는 룰은 매칭되는 파일을 읽을 때만 로드됩니다.
 
+### 다른 플러그인과 중복 설치 주의
+
+이 레포의 일부는 아래 프로젝트에서 가져오거나 착안했습니다. **같은 역할을 하는 쪽은 하나만 설치하세요.**
+둘 다 두면 같은 지침이 두 번 로드되거나, 같은 상황에서 서로 다른 절차가 경쟁합니다.
+
+| 이 레포 | 겹치는 외부 프로젝트 | 관계 | 둘 다 설치하면 |
+|---|---|---|---|
+| `rules/common/simplicity.md` | [ponytail](https://github.com/DietrichGebert/ponytail) 플러그인 | 핵심 규칙을 가져와 다듬음 (MIT) | 같은 단순성 규칙이 매 세션 두 번 들어감. 하나만 고르세요 — ponytail을 쓰면 `simplicity.md`만 빼고 복사 |
+| `seonbi`의 Diagnosis ladder (증상 체크·가설 순위·수정 후 재확인) | [mattpocock/skills](https://github.com/mattpocock/skills)의 `diagnosing-bugs` | 아이디어만 착안, 문장은 가져오지 않음 | "디버그/장애" 요청에 두 진단 절차가 같이 트리거됨. 하나만 쓰세요 |
+| `seungdo-devops`의 `verification-loop`, `github-ops` | [ECC](https://github.com/affaan-m/ECC) | 가져와 수정 (MIT) | 같은 이름의 스킬이 두 벌 로드됨 |
+
+`mattpocock/skills`의 나머지 스킬(`grilling`, `tdd`, `to-spec` 등)은 이 레포에 들어 있지 않아 겹치지 않습니다.
+
 ---
 
 ## 함께 쓰기
@@ -251,6 +264,8 @@ Source: <URL 또는 명령> (<사다리 단계>, <버전/날짜>) | Certainty: c
 에러 문자열에서 가변부(ID·경로·호스트명·타임스탬프)를 걷어내고 남은 부분으로 **먼저 검색**합니다 — 이슈 스레드에 이미 `fixed in X`로 닫혀 있는 경우가, 문서에 답이 있는 경우보다 흔하니까요. 이 단계는 건너뛸 수 없고, 건너뛰고 원인을 추정하면 Gate 2 실패로 기록됩니다.
 
 단 검색으로 찾은 건 **단서(lead)지 근거(proof)가 아닙니다.** 가설을 세우는 데만 쓰고, 실행 중인 시스템이나 공식 문서로 **승격**시킨 뒤에야 답변의 근거로 인용합니다. 승격이 안 되면 가설 라벨이 붙은 채로 남습니다.
+
+앞뒤로 **증상 체크**가 붙습니다. 진단을 시작할 때 증상을 보여주는 읽기 전용 명령 하나를 돌려 기록하고, 수정 후 같은 명령을 다시 돌려 증상이 사라진 것까지 봐야 "고쳤다"고 말합니다. 가설은 최소 2개, 각각 *"X가 원인이면 이 체크에서 Y가 보인다"* 는 예측을 달아 순위를 매겨 보여줍니다. 예측이 없는 가설은 아직 가설이 아닙니다. (이 부분은 [mattpocock/skills](https://github.com/mattpocock/skills)의 `diagnosing-bugs`에서 착안했습니다.)
 
 검색 경로는 `exa` → 내장 `WebSearch`/`WebFetch` 순으로 내려갑니다. **exa MCP가 없어도 동작하고**, 검색 경로가 전부 막혔을 때만 기억으로 답하되 그 사실이 footer에 `recall, unverified`로 남습니다. 조용한 폴백은 금지입니다.
 
@@ -387,7 +402,9 @@ seungdo-skills/
 │   ├── leak-scan.md
 │   └── shell-diagnose.md
 ├── rules/                 # 플러그인 컴포넌트 아님 — 수동으로 복사
+│   ├── NOTICE.md          # simplicity.md 출처(ponytail, MIT)
 │   └── common/
+│       ├── simplicity.md
 │       ├── coding-style.md
 │       ├── development-workflow.md
 │       ├── git-workflow.md
@@ -424,5 +441,7 @@ claude plugin validate agents --strict
 예외: `plugins/seungdo-devops/`는 [ECC](https://github.com/affaan-m/ECC)에서 가져온 스킬이라
 원본을 따라 **MIT**입니다. 저작권 고지와 변경 내역은
 [`plugins/seungdo-devops/NOTICE.md`](plugins/seungdo-devops/NOTICE.md)에 있습니다.
+`rules/common/simplicity.md`도 [ponytail](https://github.com/DietrichGebert/ponytail)에서 가져와 **MIT**이며,
+고지는 [`rules/NOTICE.md`](rules/NOTICE.md)에 있습니다.
 
 개인·학습·사내 업무 등 **비상업 목적**은 자유롭게 쓰세요. 상업적 이용은 [저작자](https://github.com/HaeDalWang)에게 문의해 주세요.

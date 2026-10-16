@@ -88,16 +88,32 @@ official docs (context7)
 1. Pin the symptom
      the exact error string, the log line, the timestamp,
      and what changed immediately before it
+   + the symptom check: ONE read-only command that shows the symptom
+     now (curl, kubectl describe, a log query, a failing test).
+     Run it once and record the output. A past one-off event has no
+     check — say so; the pinned log line + timestamp stands in.
 2. Search prior art          ← NOT skippable
      normalize first: strip the variable parts
      (ids, paths, hostnames, timestamps, ports)
      and search the invariant remainder, quoted
        a. official repo issues & PRs — known? already fixed in X? still open?
        b. Stack Overflow / blogs / release notes — same symptom pattern
-3. Form the hypothesis        ← what prior art gives you is a lead, never a proof
-4. Promote it                 ← confirm the lead against the running system
-                                (logs, config, state) and the official docs
+3. Rank the hypotheses        ← what prior art gives you is a lead, never a proof
+     at least two, ranked, each with a falsifiable prediction:
+     "If X is the cause, <check> shows Y."
+     No prediction → not a hypothesis yet; sharpen or drop it.
+     Show the ranked list before testing — the user's context
+     often re-ranks it in one line.
+4. Promote it                 ← run each prediction's check against the
+                                running system (logs, config, state) and
+                                the official docs, one variable at a time
 5. Nothing promotes → emit the Blocked block, listing the leads AS leads
+6. After the fix: close the loop
+     re-run the step-1 symptom check — the fix is confirmed only
+     when it no longer shows the symptom. Remove temporary debug
+     code (tag it, e.g. [DEBUG-a4f2], so one grep finds it). Record
+     the confirmed cause where the next person looks: commit, ticket,
+     or customer reply.
 ```
 
 Rules:
@@ -192,6 +208,8 @@ This footer is the only externally visible proof the gates ran. Do not omit it, 
 - Citing docs for a behavior claim when the running system was checkable → Gate 2
 - Smoothing over a docs-vs-reality gap instead of reporting it → Gate 2
 - Theorizing about a cause without searching the error string → Gate 2, Diagnosis ladder
+- Testing a single hypothesis, or one with no prediction → Diagnosis ladder, step 3
+- Declaring a fix without re-running the symptom check → Diagnosis ladder, step 6
 - Citing an issue thread or blog as the basis instead of promoting it → Gate 2, lead vs proof
 - Citing a doc without knowing the target version → Gate 1
 - Recommending a workaround as if it were the intended path → Gate 3
@@ -207,6 +225,8 @@ This footer is the only externally visible proof the gates ran. Do not omit it, 
 □ Version   Do I know the target's version, and does my evidence apply to it?
 □ Source    Behavior claim → did I check the real thing? Which rung? Recorded?
 □ Prior art Diagnosis? Did I search the error string before theorizing?
+□ Loop      Diagnosis? Symptom check recorded, hypotheses ranked with predictions,
+            check re-run after the fix?
 □ Intent    Is this the designed path, or a hack I have labeled as one?
 □ Certainty Confirmed / hypothesis / unknown — did I state which?
 □ Optimal   Did I name the tradeoff, or just push the first idea?
