@@ -45,22 +45,20 @@ Run the existing test command (e.g. `npm test`, `pytest`, `go test ./...`).
 Test scope follows ponytail — no coverage target. If the change has non-trivial logic and no
 check covers it, add the ONE smallest check that fails if the logic breaks.
 
-### Phase 5: Security Scan (changed files only)
+### Phase 5–6: Security Scan + Diff Review (changed files only)
 Compare against the merge-base with the default branch, so committed-but-unpushed work,
-uncommitted edits, and new untracked files are all included:
+uncommitted edits, and new untracked files are all included. Run this as **one** command —
+shell variables do not survive between separate Bash calls:
 ```bash
-REF=$(git rev-parse --abbrev-ref origin/HEAD 2>/dev/null || echo main)
-BASE=$(git merge-base HEAD "$REF" 2>/dev/null || git rev-parse HEAD)
-{ git diff --name-only --diff-filter=d "$BASE"; git ls-files --others --exclude-standard; } \
-  | sort -u | xargs grep -HnE "sk-|api_key|secret|password|BEGIN .*PRIVATE KEY" 2>/dev/null | head -10
-```
-An empty file list means nothing changed — report `SKIPPED`, not `PASS`.
-
-### Phase 6: Diff Review
-```bash
+BASE=$(git merge-base HEAD origin/HEAD 2>/dev/null || git merge-base HEAD main 2>/dev/null || git rev-parse HEAD)
+FILES=$({ git diff --name-only --diff-filter=d "$BASE"; git ls-files --others --exclude-standard; } | sort -u)
+echo "changed files: $(printf '%s' "$FILES" | grep -c .)"
+printf '%s\n' "$FILES" | tr '\n' '\0' \
+  | xargs -0 grep -HnE "sk-|api_key|secret|password|BEGIN .*PRIVATE KEY" 2>/dev/null | head -10
 git diff --stat "$BASE"
 git ls-files --others --exclude-standard   # new files the stat above does not show
 ```
+`changed files: 0` → report Security as `SKIPPED`, not `PASS`.
 Review each changed file for unintended changes, missing error handling, and edge cases.
 
 Pipe long output through `head`/`tail` — report the failures, not the full log.
