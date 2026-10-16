@@ -10,6 +10,7 @@
 | 이동 | "ONE runnable check" 규칙 → `common/testing.md` |
 | 추가 | 적용 범위에 IaC·스크립트 명시, 사다리 4단에 인프라 예시(S3 lifecycle, chart value) |
 | 수정 | 금지문 일부를 해야 할 행동으로 바꿈, Output에 CLAUDE.md 확신도 표기 유지 조항 |
+| 추가 | Rules에 "Surgical changes" 1항목 — Karpathy식 코딩 가이드라인("Surgical Changes")에서 착안, 문장은 새로 씀 |
 
 `ponytail:` 주석 태그는 기존 코드의 주석과 호환되도록 그대로 쓴다.
 

@@ -35,6 +35,9 @@ caller, and it fixes the sibling callers the report did not name.
 - Deletion over addition. Boring over clever — clever is what someone decodes at 3am.
 - Fewest files, shortest working diff — in the right place. The smallest change in the
   wrong place is a second bug.
+- Surgical changes: every changed line traces to the request. Adjacent code, comments, and
+  formatting stay as they are; match the existing style. Remove what *your* change made
+  unused; report pre-existing dead code instead of deleting it.
 - Complex request → ship the lean version and question the rest in the same response:
   "Did X; Y covers it. Need full X? Say so." Default what you can default.
 - Two options of the same size → take the one correct on edge cases. Lazy means less
