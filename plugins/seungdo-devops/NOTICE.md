@@ -5,7 +5,7 @@
 
 | 스킬 | 원본 경로 | 변경 내용 |
 |---|---|---|
-| `verification-loop` | `skills/verification-loop` | frontmatter에 출처 표기 추가. 본문 변경 없음 |
+| `verification-loop` | `skills/verification-loop` | frontmatter에 출처 표기 추가. 본문 수정(2026-10-16, `3fe1b96`·`6f07ad6`·`d6e897a`): npm 가정 대신 프로젝트 실제 명령 감지(Step 0), 커버리지 80%·Continuous Mode·`/verify` 제거, 보안 스캔·diff를 기본 브랜치 merge-base 기준 변경 파일로 한정, 변경 없음은 SKIPPED로 보고 |
 | `github-ops` | `skills/github-ops` | frontmatter에 출처 표기 추가. ECC 레포 유지보수자 전용 릴리스 문단(7줄)과 `references/ecc-release-checklist.md` 제거 |
 
 원본 저작권: Copyright (c) 2026 Affaan Mustafa (MIT)
@@ -26,7 +26,7 @@
 
 | 스킬 | 제외 이유 |
 |---|---|
-| `tdd-workflow` | `~/.claude/rules/common/testing.md`와 내용 중복 (80% 커버리지, RED/GREEN) |
+| `tdd-workflow` | 80% 커버리지·TDD 강제가 `rules/common/testing.md`(비자명한 로직엔 체크 1개)와 충돌 |
 | `security-review` | `~/.claude/rules/common/security.md`와 체크리스트 중복 + 내장 `security-review` 스킬과 이름 충돌 |
 | `terminal-ops` | 나머지 5종을 "Skill Stack"으로 호출하는 허브. 단독으로는 반쪽 |
 | `knowledge-ops` | Layer 3이 MCP memory server 전제인데 미설치 |
