@@ -21,7 +21,7 @@
    dependencies and risks, break into phases before touching code.
 
 2. **TDD where it fits** — write the test first (RED), implement to pass it (GREEN),
-   refactor (IMPROVE). See [testing.md](testing.md) — scope follows ponytail. Not every
+   refactor (IMPROVE). See [testing.md](testing.md) for test scope. Not every
    change warrants full TDD ceremony — infra/ops scripts and one-off fixes often don't.
 
 3. **Verify before claiming done** — run the actual build/type/lint/test commands and

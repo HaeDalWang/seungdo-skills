@@ -1,7 +1,7 @@
 # Coding Style
 
-Simplicity, YAGNI, reuse, and file count are governed by ponytail. This file covers
-only what ponytail does not.
+Simplicity, YAGNI, reuse, and file count live in [simplicity.md](simplicity.md).
+This file covers the rest.
 
 ## Immutability (CRITICAL)
 
@@ -65,7 +65,7 @@ Before marking work complete:
 - [ ] Files are focused (<800 lines)
 - [ ] No deep nesting (>4 levels)
 - [ ] Proper error handling
-- [ ] No hardcoded values (use constants or config)
+- [ ] No magic numbers (named constants; config only for values that actually vary)
 - [ ] No mutation (immutable patterns used)
 
 ## Review Severity
