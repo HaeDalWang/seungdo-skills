@@ -1,132 +1,77 @@
 ---
 name: verification-loop
-description: "A comprehensive verification system for Claude Code sessions. Use when verifying a Claude Code session's work before claiming it is complete."
+description: "Prove a code change works before claiming it is done: run the project's own build, type, lint, and test commands and report the evidence. Use after a non-trivial code change in a repo that has build/test tooling, before a PR, or after a refactor. Skip for docs-only edits, config tweaks, and one-off ops commands — rerunning the proving command is enough there."
 license: MIT
 metadata:
   origin: ECC
   upstream: https://github.com/affaan-m/ECC
   upstream-license: MIT
   upstream-copyright: Copyright (c) 2026 Affaan Mustafa
+  modified: "Detect commands from the project instead of assuming npm; drop coverage target and continuous mode (test scope follows ponytail)."
 ---
 
 # Verification Loop Skill
 
-A comprehensive verification system for Claude Code sessions.
+Prove the change works with the project's real commands, then report. Evidence, not claims.
 
 ## When to Use
 
-Invoke this skill:
-- After completing a feature or significant code change
+- After a non-trivial code change, before saying "done"
 - Before creating a PR
-- When you want to ensure quality gates pass
-- After refactoring
+- After a refactor
+
+Not for docs-only edits, config tweaks, or one-off ops commands.
+
+## Step 0: Detect what the project actually has
+
+Read `package.json` scripts, `Makefile`, `pyproject.toml`, `go.mod`, `Cargo.toml`, or CI config
+(`.github/workflows/*`) and use **those** commands. Skip any phase the project has no tooling for —
+say "skipped: no <phase> tooling", don't invent one.
 
 ## Verification Phases
 
-### Phase 1: Build Verification
-```bash
-# Check if project builds
-npm run build 2>&1 | tail -20
-# OR
-pnpm build 2>&1 | tail -20
-```
-
-If build fails, STOP and fix before continuing.
+### Phase 1: Build
+Run the project's build command (e.g. `npm run build`, `go build ./...`, `cargo build`).
+If it fails, STOP and fix before continuing.
 
 ### Phase 2: Type Check
+e.g. `npx --no-install tsc --noEmit`, `pyright .`, `mypy .`. Fix errors in changed code.
+
+### Phase 3: Lint
+e.g. `npm run lint`, `ruff check .`, `golangci-lint run`.
+
+### Phase 4: Tests
+Run the existing test command (e.g. `npm test`, `pytest`, `go test ./...`).
+Test scope follows ponytail — no coverage target. If the change has non-trivial logic and no
+check covers it, add the ONE smallest check that fails if the logic breaks.
+
+### Phase 5: Security Scan (changed files only)
 ```bash
-set -o pipefail
-# TypeScript projects
-npx --no-install tsc --noEmit 2>&1 | head -30
-
-# Python projects
-pyright . 2>&1 | head -30
-```
-
-Report all type errors. Fix critical ones before continuing.
-
-### Phase 3: Lint Check
-```bash
-# JavaScript/TypeScript
-npm run lint 2>&1 | head -30
-
-# Python
-ruff check . 2>&1 | head -30
-```
-
-### Phase 4: Test Suite
-```bash
-# Run tests with coverage
-npm run test -- --coverage 2>&1 | tail -50
-
-# Check coverage threshold
-# Target: 80% minimum
-```
-
-Report:
-- Total tests: X
-- Passed: X
-- Failed: X
-- Coverage: X%
-
-### Phase 5: Security Scan
-```bash
-# Check for secrets
-grep -rn "sk-" --include="*.ts" --include="*.js" . 2>/dev/null | head -10
-grep -rn "api_key" --include="*.ts" --include="*.js" . 2>/dev/null | head -10
-
-# Check for console.log
-grep -rn "console.log" --include="*.ts" --include="*.tsx" src/ 2>/dev/null | head -10
+git diff --name-only HEAD | xargs grep -nE "sk-|api_key|secret|password|BEGIN .*PRIVATE KEY" 2>/dev/null | head -10
 ```
 
 ### Phase 6: Diff Review
 ```bash
-# Show what changed
 git diff --stat
-git diff HEAD~1 --name-only
 ```
+Review each changed file for unintended changes, missing error handling, and edge cases.
 
-Review each changed file for:
-- Unintended changes
-- Missing error handling
-- Potential edge cases
+Pipe long output through `head`/`tail` — report the failures, not the full log.
 
 ## Output Format
-
-After running all phases, produce a verification report:
 
 ```
 VERIFICATION REPORT
 ==================
-
-Build:     [PASS/FAIL]
-Types:     [PASS/FAIL] (X errors)
-Lint:      [PASS/FAIL] (X warnings)
-Tests:     [PASS/FAIL] (X/Y passed, Z% coverage)
+Build:     [PASS/FAIL/SKIPPED]
+Types:     [PASS/FAIL/SKIPPED] (X errors)
+Lint:      [PASS/FAIL/SKIPPED] (X warnings)
+Tests:     [PASS/FAIL/SKIPPED] (X/Y passed)
 Security:  [PASS/FAIL] (X issues)
 Diff:      [X files changed]
 
-Overall:   [READY/NOT READY] for PR
+Overall:   [READY/NOT READY]
 
 Issues to Fix:
 1. ...
-2. ...
 ```
-
-## Continuous Mode
-
-For long sessions, run verification every 15 minutes or after major changes:
-
-```markdown
-Set a mental checkpoint:
-- After completing each function
-- After finishing a component
-- Before moving to next task
-
-Run: /verify
-```
-
-## Integration with Hooks
-
-This skill complements PostToolUse hooks but provides deeper verification.
-Hooks catch issues immediately; this skill provides comprehensive review.

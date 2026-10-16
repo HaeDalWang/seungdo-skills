@@ -1,5 +1,8 @@
 # Coding Style
 
+Simplicity, YAGNI, reuse, and file count are governed by ponytail. This file covers
+only what ponytail does not.
+
 ## Immutability (CRITICAL)
 
 ALWAYS create new objects, NEVER mutate existing ones:
@@ -12,33 +15,9 @@ CORRECT: update(original, field, value) → returns new copy with change
 
 Rationale: Immutable data prevents hidden side effects, makes debugging easier, and enables safe concurrency.
 
-## Core Principles
+## File Size
 
-### KISS (Keep It Simple)
-
-- Prefer the simplest solution that actually works
-- Avoid premature optimization
-- Optimize for clarity over cleverness
-
-### DRY (Don't Repeat Yourself)
-
-- Extract repeated logic into shared functions or utilities
-- Avoid copy-paste implementation drift
-- Introduce abstractions when repetition is real, not speculative
-
-### YAGNI (You Aren't Gonna Need It)
-
-- Do not build features or abstractions before they are needed
-- Avoid speculative generality
-- Start simple, then refactor when the pressure is real
-
-## File Organization
-
-MANY SMALL FILES > FEW LARGE FILES:
-- High cohesion, low coupling
-- 200-400 lines typical, 800 max
-- Extract utilities from large modules
-- Organize by feature/domain, not by type
+- 800 lines max per file; split by feature/domain, not by type, when it grows past that.
 
 ## Error Handling
 

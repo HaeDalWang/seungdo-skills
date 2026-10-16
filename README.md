@@ -52,16 +52,20 @@ AWS/Kubernetes 운영과 고객 대응을 하면서, 매번 똑같이 하던 판
 
 | 룰 | 내용 |
 |---|---|
-| [`coding-style.md`](rules/common/coding-style.md) | 불변성(mutation 금지), KISS·DRY·YAGNI, 파일 200–400줄, 리뷰 심각도 4단계 |
-| [`development-workflow.md`](rules/common/development-workflow.md) | 새로 짜기 전에 기존 구현부터 검색 → 계획 → TDD → 검증 |
+| [`coding-style.md`](rules/common/coding-style.md) | 불변성(mutation 금지), 에러 처리·입력 검증, 네이밍, 파일 800줄 상한, 리뷰 심각도 4단계 |
+| [`development-workflow.md`](rules/common/development-workflow.md) | 새로 짜기 전에 기존 구현부터 검색 → 계획 → TDD(적합할 때) → 검증 |
 | [`git-workflow.md`](rules/common/git-workflow.md) | 커밋 메시지 형식, PR 작성 시 전체 커밋 히스토리 분석 |
 | [`security.md`](rules/common/security.md) | 커밋 전 보안 체크리스트, 시크릿 관리, 사고 대응 순서 |
-| [`testing.md`](rules/common/testing.md) | 커버리지 80%, RED→GREEN→REFACTOR, AAA 패턴 |
+| [`testing.md`](rules/common/testing.md) | 테스트 범위는 ponytail 기준, 실패 시 구현을 고친다, 동작 기반 테스트 이름 |
 
 > **룰은 플러그인 컴포넌트가 아닙니다.** `plugin.json`에 `rules` 필드가 없고,
 > 플러그인 루트의 `CLAUDE.md`도 프로젝트 컨텍스트로 로드되지 않습니다
 > ([plugins reference](https://code.claude.com/docs/en/plugins-reference)).
 > 그래서 룰만 수동 설치입니다.
+
+> **ponytail 전제.** `coding-style.md`·`testing.md`는 단순성·YAGNI·테스트 범위를
+> [ponytail](https://github.com/DietrichGebert/ponytail) 플러그인에 맡기고 겹치는 내용을 뺐습니다.
+> ponytail 없이 쓰면 그 부분 지침이 비어 있습니다.
 
 ---
 
@@ -330,7 +334,7 @@ ECC 스킬 호출은 5주간 0회였습니다. 그런데도 이 둘만 남긴 �
 
 | 스킬 | 이유 |
 |---|---|
-| `tdd-workflow` | `~/.claude/rules/common/testing.md`와 내용 중복 — 80% 커버리지, RED/GREEN이 그대로 겹칩니다 |
+| `tdd-workflow` | 80% 커버리지·TDD 강제가 `testing.md`(테스트 범위는 ponytail 기준)와 충돌합니다 |
 | `security-review` | `~/.claude/rules/common/security.md`와 체크리스트 중복 + Claude Code 내장 `security-review`와 이름 충돌 |
 | `terminal-ops` | 나머지 5종을 `Skill Stack`으로 호출하는 허브라, 세트가 아니면 의미가 없습니다 |
 | `knowledge-ops` | Layer 3이 MCP memory server 전제인데 깔려 있지 않습니다 |
