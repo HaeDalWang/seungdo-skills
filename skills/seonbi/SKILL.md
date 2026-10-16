@@ -1,17 +1,13 @@
 ---
 name: seonbi
-description: Answer-quality gate. Before asserting any fact or recommending any action, lock the scope of the question and force the answer through five checks — temporal fit, source ladder, design intent, calibrated certainty, and optimality — using the running system and the actual code for behavior claims, context7 for library and framework docs, and exa for everything else — and for a diagnosis, searching prior art (issue threads, the error string itself) before theorizing about the cause. Use this skill whenever the user asks a factual, technical, version-specific, or troubleshooting question; whenever an answer would cite documentation, quote a config option, or recommend a change to a running system; and whenever the user asks "are you sure", "what's the source", "why did this happen", or says 근거 / 출처 / 확실해 / 장애 / 트러블슈팅 / 선비. Use it even when the question looks simple enough to answer from memory — questions that look simple are exactly where unsourced answers slip through. Incidents are the highest-stakes case, not the only case.
+description: Answer-quality gate that separates verified from recalled. Locks the question's scope, then checks temporal fit, source ladder, design intent, calibrated certainty, and optimality; for a diagnosis, searches prior art before theorizing. Use for any factual, technical, version-specific, or troubleshooting question; any answer that cites docs, quotes a config option, or recommends a change to a running system; and "are you sure / what's the source / why did this happen", 근거, 출처, 확실해, 장애, 트러블슈팅, 선비 — including questions that look answerable from memory, where unsourced answers slip through.
 ---
 
 # Seonbi
 
-An answer-quality gate. It exists to make one distinction impossible to hide: **what was verified vs. what was recalled.**
-
-Origin: a team lead's review standard, implemented as a skill. The goal is not to sound rigorous. The goal is that a wrong answer is visibly wrong before it ships.
+An answer-quality gate. It makes one distinction impossible to hide: **what was verified vs. what was recalled.** The goal is that a wrong answer is visibly wrong before it ships.
 
 **Prime directive: never hide uncertainty.** A confident wrong answer is the most expensive output this skill exists to prevent. Vague wording and honest uncertainty are different things — ban the first, require the second.
-
-The answer is written in the user's language per top-level rules. This file being English does not change that.
 
 ---
 
@@ -161,8 +157,8 @@ Required: state the confidence level as a fact.
 
 Applies to incidents, deploys, config changes, migrations. Skipped for pure factual questions.
 
-1. **Search prior art before theorizing** — run the Diagnosis ladder. Someone has usually hit this already; finding that takes minutes, while guessing at it takes hours and often ends at the wrong cause.
-2. **Verify environment facts before diagnosing** — actual version, actual config, actual log lines, via the shell tools above. Diagnosing from assumed state is the most common way to be confidently wrong in production, and no amount of good sourcing fixes it.
+1. **Run the Diagnosis ladder** (Gate 2) before proposing any change.
+2. **Verify environment facts first** — actual version, actual config, actual log lines, via the shell tools above. Diagnosing from assumed state is the most common way to be confidently wrong in production, and no amount of good sourcing fixes it.
 3. **Prefer reversible actions first.** Order proposals by how easily they undo.
 4. **State the blast radius.** What else is touched, who else notices, what the rollback is.
 
@@ -201,34 +197,23 @@ This footer is the only externally visible proof the gates ran. Do not omit it, 
 
 ---
 
-## Hard failures
-
-- Answering the adjacent question that was easier to source → scope lock
-- Presenting recalled information as sourced → Gate 2, worst case
-- Citing docs for a behavior claim when the running system was checkable → Gate 2
-- Smoothing over a docs-vs-reality gap instead of reporting it → Gate 2
-- Theorizing about a cause without searching the error string → Gate 2, Diagnosis ladder
-- Testing a single hypothesis, or one with no prediction → Diagnosis ladder, step 3
-- Declaring a fix without re-running the symptom check → Diagnosis ladder, step 6
-- Citing an issue thread or blog as the basis instead of promoting it → Gate 2, lead vs proof
-- Citing a doc without knowing the target version → Gate 1
-- Recommending a workaround as if it were the intended path → Gate 3
-- Applying a definite tone to an unverified claim → Gate 4
-- Hedging with "probably" instead of stating a confidence level → Gate 4
-- Fixing what is in front of you while ignoring the surrounding conditions → Gate 5
-- Proposing an irreversible action on an unverified basis → hard stop
-
 ## Pre-answer check
 
+Every box must hold before the answer ships.
+
 ```
-□ Scope     Am I answering what was asked, or what was easier to source?
-□ Version   Do I know the target's version, and does my evidence apply to it?
-□ Source    Behavior claim → did I check the real thing? Which rung? Recorded?
-□ Prior art Diagnosis? Did I search the error string before theorizing?
-□ Loop      Diagnosis? Symptom check recorded, hypotheses ranked with predictions,
-            check re-run after the fix?
-□ Intent    Is this the designed path, or a hack I have labeled as one?
-□ Certainty Confirmed / hypothesis / unknown — did I state which?
-□ Optimal   Did I name the tradeoff, or just push the first idea?
-□ Footer    Is it attached?
+□ Scope     Answering what was asked — not the adjacent question easier to source
+□ Version   Target version known; the evidence applies to it
+□ Source    Every citation came from a tool result this session (recalled-as-sourced
+            is the worst failure). Behavior claim → the real system was checked.
+            Rung stated. A docs-vs-reality gap is reported, not smoothed.
+□ Lead      Issue threads and blogs promoted to system/docs before being cited
+□ Prior art Diagnosis → the error string was searched before theorizing
+□ Loop      Diagnosis → symptom check recorded, ≥2 hypotheses ranked with
+            predictions, check re-run after the fix
+□ Intent    The designed path — or a hack labeled as one, next to the intended path
+□ Certainty Confirmed / hypothesis / unknown stated as fact; no bare hedges
+□ Optimal   Surrounding conditions considered, tradeoff named
+□ Stop      Irreversible + unverified → only verification steps, then stop
+□ Footer    Attached
 ```
